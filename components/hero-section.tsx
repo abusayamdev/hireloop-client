@@ -124,7 +124,7 @@ export function HeroSection() {
       </div>
 
       {/* Hero art: purple glow behind the globe, globe bleeds off the bottom */}
-      <div className="relative z-0 h-[440px] sm:h-[560px] lg:h-[732px]">
+      <div className="relative z-0 h-[260px] sm:h-[340px] lg:h-[460px]">
         <div
           aria-hidden
           className="absolute top-1/2 left-1/2 h-[min(1037px,180vw)] w-[min(1236px,86vw)] max-w-none -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#5C53FE] blur-[148px]"
