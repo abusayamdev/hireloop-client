@@ -6,46 +6,69 @@ import type { JobRow } from "@/lib/types/jobs"
 import { Bookmark } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useSession } from "@/lib/auth-client"
-import { createApplication } from "@/lib/api/applications"
+import { createApplication, getApplicationsCount } from "@/lib/api/applications"
+import { getUserPremiumById } from "@/lib/api/user"
 import type { ApplicationFormData } from "@/lib/types/applications"
+import { toast } from "@/components/ui/toast"
 export function JobHeaderCard({ job }: { job: JobRow }) {
     const { data: session } = useSession()
     const router = useRouter()
     const user = session?.user;
 
-    const handleApplyNow = async() => {
+    const handleApplyNow = async () => {
         if (!user) {
             router.push(`/sign-in?redirectTo=/browse-jobs/${job._id}`)
             return
         }
-        else if(user.role === 'seeker'){
-            // Save the full application snapshot (job + seeker + lifecycle)
-            // so the My Applications page can render with no joins.
-            const application: ApplicationFormData = {
-                jobId: job._id,
-                userId: user.id,
-                email: user.email,
-                jobTitle: job.title,
-                companyName: job.companyName,
-                jobType: job.jobType,
-                isRemote: job.isRemote,
-                location: job.location,
-                minSalary: job.minSalary,
-                maxSalary: job.maxSalary,
-                salaryFrequency: job.salaryFrequency,
-                deadline: job.deadline,
-                appliedAt: new Date().toISOString(),
-                status: "applied",
-                archived: false,
+        else if (user.role === 'seeker') {
+
+            // is premium user
+            const premiumResult = await getUserPremiumById(user.id)
+
+            console.log('premiumResult', premiumResult)
+            // number of jobs applied by this user
+            const countResult = await getApplicationsCount(`applicantId=${user.id}`)
+            // less more than 10 and not premium user
+            if (!premiumResult.premium && countResult.count >= 2) {
+                // redirect to the payment page
+                router.push('/checkout')
+                return
+            }
+            else {
+                // Save the full application snapshot (job + seeker + lifecycle)
+                // so the My Applications page can render with no joins.
+                const application: ApplicationFormData = {
+                    jobId: job._id,
+                    userId: user.id,
+                    email: user.email,
+                    jobTitle: job.title,
+                    companyName: job.companyName,
+                    jobType: job.jobType,
+                    isRemote: job.isRemote,
+                    location: job.location,
+                    minSalary: job.minSalary,
+                    maxSalary: job.maxSalary,
+                    salaryFrequency: job.salaryFrequency,
+                    deadline: job.deadline,
+                    appliedAt: new Date().toISOString(),
+                    status: "applied",
+                    archived: false,
+                }
+
+                const result = await createApplication(application);
+                if (result.insertedId) {
+                    console.log("Application submitted successfully");
+                    toast.add({
+                        title: "Application submitted",
+                        description: "Your application has been submitted successfully.",
+                    })
+                    router.push('/browse-jobs')
+                }
             }
 
-            const result = await createApplication(application);
-            if(result.insertedId){
-                console.log("Application submitted successfully");
-                router.push('/browse-jobs')
-            }
+
         }
-        else{
+        else {
             console.log("user is not a job seeker")
         }
     }
