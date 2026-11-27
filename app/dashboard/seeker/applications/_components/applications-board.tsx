@@ -10,25 +10,13 @@
 import { useState } from "react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { StatusPill } from "@/components/shared/status-pill"
 import { formatRelativeTime } from "@/lib/formatters"
-import { STATUS_META, type ApplicationRow, type ApplicationStatus } from "@/lib/types/applications"
+import { type ApplicationRow, type ApplicationStatus } from "@/lib/types/applications"
 import { ChevronLeft, ChevronRight, Download } from "lucide-react"
 
 const cardShadow =
     "shadow-[0_1px_2px_rgba(0,0,0,0.35)] shadow-[inset_0_1px_rgba(255,255,255,0.035)]"
-
-/** Status pill: colored border + text on a 10% tint of the same color. */
-function StatusPill({ status }: { status: ApplicationStatus }) {
-    const { label, color } = STATUS_META[status]
-    return (
-        <span
-            className="inline-flex h-[22px] items-center whitespace-nowrap rounded-full border px-2.5 text-xs font-medium"
-            style={{ color, borderColor: color, backgroundColor: `${color}1A` }}
-        >
-            {label}
-        </span>
-    )
-}
 
 // Avatar tile palette from the Figma rows (32×32, radius 4).
 const AVATAR_TILES = [

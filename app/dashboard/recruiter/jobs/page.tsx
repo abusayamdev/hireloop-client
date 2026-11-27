@@ -1,31 +1,14 @@
 import Link from "next/link"
 
 import { buttonVariants } from "@/components/ui/button"
+import { PageContainer, PageHeader } from "@/components/dashboard/page-shell"
 import { cn } from "@/lib/utils"
-import { Eye, Pencil, Plus, Users } from "lucide-react"
-import type { JobFormData } from "@/app/dashboard/recruiter/jobs/new/page"
+import { Eye, FileText, Pencil, Plus, Users } from "lucide-react"
+import type { JobRow, JobStatus } from "@/lib/types/jobs"
+import { formatCompensation, formatDeadline } from "@/lib/formatters"
 import { getJobs } from "@/lib/api/jobs"
 import { DeleteJobDialog } from "@/app/components/DeleteJobDialog"
-
-// Table rows carry the same flat shape the "Post a New Job" form (JobFormData)
-// stores, plus the extra fields only the table needs.
-type JobStatus = "active" | "expired"
-
-export type JobRow = JobFormData & {
-    _id: string
-    applicants: number
-    status: JobStatus
-    /** Relativized post date, e.g. "Posted 4d ago". */
-    posted: string
-}
-
-/** "25", "40", "per hour" → "€25 – €40 / hr" (as in the Figma rows). */
-const formatCompensation = (job: JobFormData) =>
-    `€${job.minSalary} – €${job.maxSalary} / ${job.salaryFrequency.replace("per ", "")}`
-
-/** "2025-05-30" → "May 30, 2025". Fixed en-US so SSR and client agree. */
-const formatDeadline = (deadline: string) =>
-    new Date(deadline).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })
+import { getSession } from "@/lib/core/server"
 
 const badgeClass =
     "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize"
@@ -34,7 +17,7 @@ const statusStyles: Record<JobStatus, string> = {
     expired: "border-white/10 bg-white/5 text-white/50",
 }
 const typePillClass =
-    "inline-flex items-center whitespace-nowrap rounded-lg border border-white/10 bg-[#1A1A1F] px-2.5 py-0.5 text-xs capitalize text-white/80"
+    "inline-flex items-center whitespace-nowrap rounded-lg border surface-field px-2.5 py-0.5 text-xs capitalize text-white/80"
 
 const iconButtonClass =
     "flex size-8 items-center justify-center rounded-md border border-white/10 bg-[#1A1A1F] text-white/60 transition-colors hover:border-white/25 hover:text-white"
@@ -52,12 +35,12 @@ const headingClass = "px-3 py-3.5 text-xs font-medium tracking-wide text-white/5
 const cellClass = "px-3 py-3.5"
 
 export default async function RecruiterJobsPage() {
-    
-    const jobs: JobRow[] = await getJobs();
-    console.log("jobs data", jobs) // wire to backend fetch later
+    const session = await getSession()
+    console.log('recruiter', session?.user.id)
+    const jobs: JobRow[] = await getJobs(`recruiterId=${session?.user.id}`);
 
     return (
-        <div className="mx-auto w-full max-w-6xl px-4 py-8">
+        <PageContainer width="wide">
             {/* Breadcrumb */}
             <nav className="mb-6 flex items-center gap-2 text-sm">
                 <span className="text-white/50">Manage Jobs</span>
@@ -66,27 +49,22 @@ export default async function RecruiterJobsPage() {
             </nav>
 
             {/* Page heading + primary action */}
-            <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
-                <div className="flex flex-col gap-1.5">
-                    <h1 className="font-heading text-[28px] leading-[1.15] font-bold tracking-[-0.02em] text-white">
-                        Manage Job Posts
-                    </h1>
-                    <p className="text-sm text-white/60">
-                        Review live listings, monitor applicants, and update job details
-                        across your organization.
-                    </p>
-                </div>
-                <Link
-                    href="/dashboard/recruiter/jobs/new"
-                    className={cn(buttonVariants(), "bg-[#5C53FE] hover:bg-[#7B74FF]")}
-                >
-                    <Plus aria-hidden />
-                    New Job Post
-                </Link>
-            </header>
+            <PageHeader
+                title="Manage Job Posts"
+                subtitle="Review live listings, monitor applicants, and update job details across your organization."
+                action={
+                    <Link
+                        href="/dashboard/recruiter/jobs/new"
+                        className={cn(buttonVariants(), "btn-brand")}
+                    >
+                        <Plus aria-hidden />
+                        New Job Post
+                    </Link>
+                }
+            />
 
             {/* Postings table — columns collapse away on smaller screens instead of scrolling */}
-            <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#101010]/95 shadow-[inset_0_3px_10px_rgba(255,255,255,0.04)]">
+            <section className="surface-card overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="table-fixed w-full text-left text-sm">
                         <thead>
@@ -127,7 +105,7 @@ export default async function RecruiterJobsPage() {
                                     <td className={cn(cellClass, "px-5")}>
                                         <div className="flex items-center gap-3">
                                             <span
-                                                className="hidden size-10 shrink-0 items-center justify-center rounded-lg bg-[#5C53FE]/15 text-sm font-semibold text-[#8B85FF] sm:flex"
+                                                className="brand-chip hidden size-10 shrink-0 items-center justify-center rounded-lg text-sm font-semibold sm:flex"
                                                 aria-hidden
                                             >
                                                 {job.title.charAt(0)}
@@ -191,6 +169,13 @@ export default async function RecruiterJobsPage() {
                                     {/* Actions */}
                                     <td className={cn(cellClass, "px-5")}>
                                         <div className="flex items-center gap-1">
+                                            <Link
+                                                href={`/dashboard/recruiter/jobs/${job._id}/applications`}
+                                                aria-label={`View applications for ${job.title}`}
+                                                className={iconButtonClass}
+                                            >
+                                                <FileText aria-hidden className="size-4" />
+                                            </Link>
                                             <button
                                                 type="button"
                                                 aria-label={`View ${job.title}`}
@@ -214,6 +199,6 @@ export default async function RecruiterJobsPage() {
                     </table>
                 </div>
             </section>
-        </div>
+        </PageContainer>
     )
 }

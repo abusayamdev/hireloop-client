@@ -15,8 +15,8 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { JobRow } from "../dashboard/recruiter/jobs/page"
-import { deleteJob } from "@/lib/actions/jobs"
+import type { JobRow } from "@/lib/types/jobs"
+import { deleteJob } from "@/lib/api/jobs"
 import { toast } from "@/components/ui/toast"
 
 export function DeleteJobDialog({ job }: { job: JobRow }) {
