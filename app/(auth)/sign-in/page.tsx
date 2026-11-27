@@ -1,10 +1,11 @@
 "use client"
 
+import { Suspense } from "react"
 import { AuthForm, AuthFormData } from "@/components/auth-form"
 import { authClient } from "@/lib/auth-client"
 import { useSearchParams } from "next/navigation"
 
-export default function SignInPage() {
+function SignInContent() {
     const searchParams = useSearchParams()
     const redirectTo = searchParams.get("redirectTo") ?? "/"
 
@@ -22,4 +23,12 @@ export default function SignInPage() {
     }
 
     return <AuthForm mode="signin" onSubmit={handleSignIn} />
+}
+
+export default function SignInPage() {
+    return (
+        <Suspense fallback={null}>
+            <SignInContent />
+        </Suspense>
+    )
 }

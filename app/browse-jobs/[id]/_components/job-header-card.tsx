@@ -7,7 +7,7 @@ import { Bookmark } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useSession } from "@/lib/auth-client"
 import { createApplication, getApplicationsCount } from "@/lib/api/applications"
-import { getUserPremiumById } from "@/lib/api/user"
+import { getUserPremiumById } from "@/lib/api/user-client"
 import type { ApplicationFormData } from "@/lib/types/applications"
 import { toast } from "@/components/ui/toast"
 export function JobHeaderCard({ job }: { job: JobRow }) {
