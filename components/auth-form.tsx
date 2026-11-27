@@ -5,13 +5,15 @@ import Link from "next/link"
 import { Eye, EyeOff, Lock, Mail, Shield, User, Users } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-
-export type AuthMode = "signin" | "signup"
+import { PillGroup } from "@/components/shared/pill-group"
+import type { UserRole } from "@/lib/types/user"
 
 // TODO: Replace this with better-auth (`@/lib/auth-client`) once the backend
 // integration is wired up. For now it only reports the collected data.
 // Roles mirror the `user.additionalFields.role` enum in `lib/auth.ts`.
-export type UserRole = "seeker" | "recruiter" | "admin"
+export type { UserRole }
+
+export type AuthMode = "signin" | "signup"
 
 export type AuthFormData = {
   email: string
@@ -42,7 +44,7 @@ const COPY = {
 } as const
 
 const inputClass =
-  "h-12 w-full rounded-lg border border-white/10 bg-[#1A1A1F] pl-10 pr-3 text-base tracking-[-0.0125rem] text-[#EDEDEF] shadow-[inset_0_3px_10px_rgba(255,255,255,0.04)] outline-none transition-colors placeholder:text-white/60 focus:border-[#5C53FE]/60 focus:ring-2 focus:ring-[#5C53FE]/30 aria-invalid:border-destructive/60"
+  "h-12 w-full rounded-lg border surface-field pl-10 pr-3 text-base tracking-[-0.0125rem] text-[#EDEDEF] shadow-[inset_0_3px_10px_rgba(255,255,255,0.04)] outline-none transition-colors placeholder:text-white/60 focus:ring-2 focus:ring-[#5C53FE]/30"
 const labelClass = "mb-2 block text-left text-sm text-[#EDEDEF]/80"
 
 // Sign-up role picker — values match better-auth's `role` field in lib/auth.ts.
@@ -55,9 +57,6 @@ const ROLES: {
   { value: "recruiter", label: "Recruiter", icon: User },
   { value: "admin", label: "Admin", icon: Shield },
 ]
-
-const rolePillClass =
-  "flex h-full w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border px-2 py-3 text-sm tracking-[-0.0125rem] transition-colors has-[input:focus-visible]:ring-2 has-[input:focus-visible]:ring-[#5C53FE]/60"
 
 export function AuthForm({
   mode,
@@ -100,9 +99,9 @@ export function AuthForm({
   }
 
   return (
-    <div className="w-full rounded-2xl border border-white/10 bg-[#101010]/95 p-8 shadow-[inset_0_3px_10px_rgba(255,255,255,0.06)]">
+    <div className="surface-card w-full p-8">
       <div className="mb-8 flex flex-col gap-2 text-center">
-        <h1 className="font-heading text-[28px] leading-[1.15] font-bold tracking-[-0.02em] text-white">
+        <h1 className="page-title">
           {copy.title}
         </h1>
         <p className="text-base leading-[1.6] text-white/70">{copy.subtitle}</p>
@@ -112,36 +111,14 @@ export function AuthForm({
         {copy.showName ? (
           <fieldset>
             <legend className={labelClass}>Joining HireLoop as</legend>
-            <div className="grid grid-cols-3 gap-2">
-              {ROLES.map(({ value, label, icon: Icon }) => {
-                const selected = values.role === value
-
-                return (
-                  <label
-                    key={value}
-                    className={cn(
-                      rolePillClass,
-                      selected
-                        ? "border-[#5C53FE] bg-[#5C53FE]/15 text-white"
-                        : "border-white/10 bg-[#1A1A1F] text-white/70 hover:border-white/25 hover:text-white"
-                    )}
-                  >
-                    <input
-                      type="radio"
-                      name="role"
-                      value={value}
-                      checked={selected}
-                      onChange={() =>
-                        setValues((prev) => ({ ...prev, role: value }))
-                      }
-                      className="sr-only"
-                    />
-                    <Icon aria-hidden className="size-5" />
-                    <span>{label}</span>
-                  </label>
-                )
-              })}
-            </div>
+            <PillGroup
+              name="role"
+              value={values.role ?? "seeker"}
+              onChange={(role) => setValues((prev) => ({ ...prev, role }))}
+              options={ROLES}
+              className="grid grid-cols-3 gap-2"
+              pillClassName="flex-col h-full w-full justify-center gap-1.5 px-2 py-3 tracking-[-0.0125rem]"
+            />
           </fieldset>
         ) : null}
 
@@ -244,7 +221,7 @@ export function AuthForm({
 
         <button
           type="submit"
-          className="mt-1 h-[52px] w-full rounded-[8px] bg-[#5C53FE] text-lg font-medium text-[#EDEDEF] shadow-[inset_0_3px_10px_rgba(255,255,255,0.2)] transition-colors hover:bg-[#7B74FF] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40"
+          className="btn-brand mt-1 h-[52px] w-full rounded-[8px] text-lg font-medium text-[#EDEDEF] shadow-[inset_0_3px_10px_rgba(255,255,255,0.2)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40"
         >
           {copy.submitLabel}
         </button>
